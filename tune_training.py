@@ -199,7 +199,7 @@ def train_model(config, checkpoint_dir=None):
     import tensorflow as tf
 
     print("train_model")
-
+    
     #print('Checking if GPU is available before trial starts... \n')
     #TODO: Build a new wait for gpu
     #wait_for_gpu()
@@ -208,6 +208,8 @@ def train_model(config, checkpoint_dir=None):
     tf.config.threading.set_intra_op_parallelism_threads(1)
     tf.config.threading.set_inter_op_parallelism_threads(1)
 
+    strategy = tf.distribute.MultiWorkerMirroredStrategy()
+    
     #Enable Automatic Mixed Precision
     #if args.enable_amp:
     #    print("Enabling mixed precision... \n")
@@ -235,6 +237,11 @@ def train_model(config, checkpoint_dir=None):
         options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.OFF
         train_dataset = train_dataset.with_options(options)
         val_dataset = val_dataset.with_options(options)
+    else:
+        options = tf.data.Options()
+        options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.DATA
+        train_dataset = train_dataset.with_options(options)
+        val_dataset = val_dataset.with_options(options)        
     
     learning_rate = LRScheduler( batch_size, alpha =  config["alpha"], warmup_steps = config["warmup"])
     

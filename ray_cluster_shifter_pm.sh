@@ -3,26 +3,25 @@
 #SBATCH -q regular
 #SBATCH -N 2
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=80
-#SBATCH --gpus-per-task=8
+#SBATCH --cpus-per-task=64
+#SBATCH --gpus-per-task=4
 #SBATCH --image=nersc/tensorflow:ngc-21.05-tf2-v0
 #SBATCH --exclusive
 #SBATCH -t 02:00:00
-#SBTACH -J disk_det
+#SBTACH -J ray_tune_testing
 #SBATCH -o ray_test-%j.out
-#SBATCH -e ray_error-%j.err
-#SBATCH -A m2571
+#SBATCH -e ray_test-%j.err
+#SBATCH -A m3795
 #SBATCH -L SCRATCH
 
 #set up modules
-module load cgpu
-module load cuda/shifter
+module load cuda
 
 export LC_ALL=C.UTF-8
 export LANG=C.UTF-8
 
-export train_dataset="unrot_augmented_train.tfrecords"
-export test_dataset="unrot_augmented_test.tfrecords"
+export train_dataset="/global/cfs/projectdirs/m3795/4dstem/matt/unrot_augmented_train.tfrecords"
+export test_dataset="/global/cfs/projectdirs/m3795/4dstem/matt/unrot_augmented_test.tfrecords"
 
 #set up environment
 export PATH=/opt/shifter/bin:${PATH}
@@ -100,7 +99,7 @@ export TF_CONFIG="{\"cluster\": {\"worker\": $TF_NODES, \"task\": {\"type\": \"w
 start_time="$(date -u +%s)"
 echo "STARTING TASKS..."
 export RAY_ADDRESS=$ip_head
-RAY_NUM_CPUS_PER_WORKER=9
+RAY_NUM_CPUS_PER_WORKER=15
 RAY_NUM_GPUS_PER_WORKER=1
 export ray_num_workers=$((${SLURM_JOB_NUM_NODES} * ${SLURM_GPUS_PER_TASK}))
 # set the tensorflow concurrency limit for trials to the total number of workers
